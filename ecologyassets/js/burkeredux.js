@@ -73,18 +73,29 @@ var links = [
   {source: "search", target: "sweeping-search", type: "kinesthetic"},
 ];
 
+
+// Add ID for each object in links array
+for (var i = 0; i < links.length; i++) {
+  links[i].id = i;
+}
+
 var nodes = {};
+
+var width = 950;
+var height = 800;
 
 // Compute the distinct nodes from the links.
 links.forEach(function(link) {
   link.source = nodes[link.source] || (nodes[link.source] = {name: link.source});
-  link.target = nodes[link.target] || (nodes[link.target] = {name: link.target});
+  link.target = nodes[link.target] || (nodes[link.target] = {name: link.target});;
 });
 
-var width = 950;
-    height = 800;
-
-    
+// Add ID for each object in nodes array
+var elCount = 0;
+for (e in nodes) {
+  nodes.id = elCount;
+  elCount++;
+}
 
 var force = d3.layout.force()
     .nodes(d3.values(nodes))
@@ -98,8 +109,6 @@ var force = d3.layout.force()
 var svg = d3.select("body").append("svg")
     .attr("width", width)
     .attr("height", height);
-    
-    
 
 // Per-type markers, as they don't inherit styles.
 svg.append("defs").selectAll("marker")
@@ -125,14 +134,33 @@ var circle = svg.append("g").selectAll("circle")
     .data(force.nodes())
   .enter().append("circle")
     .attr("r", 4)
-    .call(force.drag);
+    .attr("id", function(d) { return "circle" + d.index; })
+    .call(force.drag)
+    .on("mouseover", function(d) { // <text> label show/hide
+      var nid = (d.index).toString();
+      var fid = "circle"+nid;
+      var e = document.getElementById(nid);
+      var f = document.getElementById(fid);
+      e.style.opacity = 1;
+    })
+    .on("mouseout", function(d) {
+      var nid = (d.index).toString();
+      var fid = "circle"+nid;
+      var e = document.getElementById(nid);
+      var f = document.getElementById(fid);
+      e.style.opacity = 0;
+    });
 
 var text = svg.append("g").selectAll("text")
     .data(force.nodes())
   	.enter().append("text")
     .attr("x", 8)
     .attr("y", 8)
-    .text(function(d) { return d.name; });
+    .attr("opacity", 0)
+    .attr("id", function(d) { return d.index; })
+    .text(function(d) {
+      return d.name; 
+    });
 
 // Use elliptical arc path segments to doubly-encode directionality.
 function tick() {
@@ -151,5 +179,3 @@ function linkArc(d) {
 function transform(d) {
   return "translate(" + d.x + "," + d.y + ")";
 }
-
-
